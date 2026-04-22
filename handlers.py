@@ -31,8 +31,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("➕ Add Me to Your Group", url=f"https://t.me/{context.bot.username}?startgroup=true")],
         [
-            InlineKeyboardButton("📢 Channel", url="https://t.me/YourChannelLink"),
-            InlineKeyboardButton("💬 Support", url="https://t.me/YourSupportLink")
+            InlineKeyboardButton("📢 Channel", url="https://t.me/free_net_zone1"),
+            InlineKeyboardButton("💬 Support", url="https://t.me/free_net_zone2")
         ],
         [InlineKeyboardButton("📜 Help & Commands", callback_data="help_menu")]
     ]
