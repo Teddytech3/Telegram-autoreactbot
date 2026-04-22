@@ -3,7 +3,7 @@ import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
-from telegram.error import FloodWait
+from telegram.error import RetryAfter as FloodWait 
 from config import Config
 import db
 import utils
@@ -15,17 +15,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     g_count = await db.groups_col.count_documents({})
     u_count = await db.users_col.count_documents({})
     
-    # MarkdownV2 requires escaping special characters like . - !
+    # 'rf' denotes raw f-string to handle MarkdownV2 escapes correctly
     text = (
-        f"✨ *Welcome to ReactionMaster Pro, {user.first_name}\!* ✨\n\n"
-        f"🚀 *The most powerful auto\-reaction bot for groups\.*\n\n"
-        f"📊 *Global Statistics*\n"
-        f"┣ 👤 `Users:` *{u_count}*\n"
-        f"┗ 🏠 `Groups:` *{g_count}*\n\n"
-        f"🛠 *Core Features*\n"
-        f"• Auto\-React to Group Messages\n"
-        f"• Advanced Broadcast System\n"
-        f"• Force Subscription Guard\n"
+        rf"✨ *Welcome to ReactionMaster Pro, {user.first_name}\!* ✨" + "\n\n"
+        rf"🚀 *The most powerful auto\-reaction bot for groups\.*" + "\n\n"
+        rf"📊 *Global Statistics*" + "\n"
+        rf"┣ 👤 `Users:` *{u_count}*" + "\n"
+        rf"┗ 🏠 `Groups:` *{g_count}*" + "\n\n"
+        rf"🛠 *Core Features*" + "\n"
+        rf"• Auto\-React to Group Messages" + "\n"
+        rf"• Advanced Broadcast System" + "\n"
+        rf"• Force Subscription Guard"
     )
 
     keyboard = [
@@ -49,12 +49,12 @@ async def help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     help_text = (
-        "📖 *Command Manual*\n\n"
-        "🔹 `/autoreact on|off` \- Toggle reactions\n"
-        "🔹 `/setemoji <emojis>` \- Set custom set\n"
-        "🔹 `/id` \- Get Chat/User ID\n"
-        "🔹 `/broadcast` \- Global alert \(Owner\)\n\n"
-        "💡 _Note: Only group admins can toggle settings\._"
+        rf"📖 *Command Manual*" + "\n\n"
+        rf"🔹 `/autoreact on|off` \- Toggle reactions" + "\n"
+        rf"🔹 `/setemoji <emojis>` \- Set custom set" + "\n"
+        rf"🔹 `/id` \- Get Chat/User ID" + "\n"
+        rf"🔹 `/broadcast` \- Global alert \(Owner\)" + "\n\n"
+        rf"💡 _Note: Only group admins can toggle settings\._"
     )
     await query.edit_message_caption(caption=help_text, parse_mode=ParseMode.MARKDOWN_V2)
 
@@ -76,7 +76,7 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success, failed = 0, 0
     msg = update.message.reply_to_message if update.message.reply_to_message else update.message
     
-    status_msg = await update.message.reply_text("🚀 *Broadcasting\.\.\.*", parse_mode=ParseMode.MARKDOWN_V2)
+    status_msg = await update.message.reply_text(rf"🚀 *Broadcasting\.\.\.*", parse_mode=ParseMode.MARKDOWN_V2)
 
     async for g in groups:
         try:
@@ -88,17 +88,16 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             failed += 1
 
-    await status_msg.edit_text(f"✅ *Sent:* `{success}`\n❌ *Failed:* `{failed}`", parse_mode=ParseMode.MARKDOWN_V2)
+    await status_msg.edit_text(rf"✅ *Sent:* `{success}`\n❌ *Failed:* `{failed}`", parse_mode=ParseMode.MARKDOWN_V2)
 
 async def chat_member_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
     result = update.my_chat_member
     if result.new_chat_member.status in ["administrator", "member"]:
-        # Check Force Sub
         if not await utils.is_subscribed(context.bot, result.from_user.id):
             try:
                 await context.bot.send_message(
                     result.from_user.id, 
-                    "⚠️ *Access Denied*\n\nYou must join our Channel and Group to add me to new chats\!",
+                    rf"⚠️ *Access Denied*\n\nYou must join our Channel and Group to add me to new chats\!",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
             except: pass
